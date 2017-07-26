@@ -1,0 +1,16 @@
+[package]
+name = "httpServer"
+version = "0.1.0"
+authors = ["segfo <k.segfo@gmail.com>"]
+
+[dependencies]
+serde = "1.0.10"
+serde_json = "1.0"
+serde_derive = "1.0.10"
+router = "*"
+
+[dependencies.hyper-native-tls ]
+version = "*"
+
+[dependencies.iron]
+version = "*"
