@@ -62,37 +62,35 @@ fn query(req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((status::Ok, res)))
 }
 
+fn setupServer()->iron::Iron<router::Router>{
+    let mut router = Router::new();
+    // router , method , router_id
+    router.get("/", index, "index");
+    router.get("/req/:query/:q1", query, "query");
+    Iron::new(router)
+}
 
 fn runHttpServer(conf:&ServerConfig) {
-    let bindAddr=format!("{}:{}", conf.interface, conf.port);
     let mut router = Router::new();
 
     println!("httpサーバ：動作開始(非推奨)");
 
-    // router , method , router_id
-    router.get("/", index, "index");
-    router.get("/req/:query/:q1", query, "query");
-
-    match Iron::new(router).http(&bindAddr) {
+    let bindAddr=format!("{}:{}", conf.interface, conf.port);
+    match setupServer().http(&bindAddr) {
         Ok(listening) => println!("{:?}", listening),
         Err(err) => panic!("{:?}", err),
     }
 }
 
 fn runHttpsServer(conf:&ServerConfig) {
-    let bindAddr=format!("{}:{}", conf.interface, conf.port);
     let ssl = NativeTlsServer::new(
         &conf.certificate.filePath,
         &conf.certificate.passphrase).unwrap();
-    let mut router = Router::new();
 
     println!("httpsサーバ：動作開始");
 
-    // router , method , router_id
-    router.get("/", index, "index");
-    router.get("/req/:query/:q1", query, "query");
-
-    match Iron::new(router).https(&bindAddr, ssl) {
+    let bindAddr=format!("{}:{}", conf.interface, conf.port);
+    match setupServer().https(&bindAddr, ssl) {
         Ok(listening) => println!("{:?}", listening),
         Err(err) => panic!("{:?}", err),
     }
