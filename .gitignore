@@ -1,2 +1,4 @@
 /target/
 **/*.rs.bk
+serverconfig.json.old
+serverconfig.json
