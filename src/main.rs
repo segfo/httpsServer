@@ -2,6 +2,9 @@
 extern crate iron;
 extern crate hyper_native_tls;
 extern crate router;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
 
 use std::io::{BufReader,BufWriter};
 use std::fs::File;
@@ -17,19 +20,15 @@ mod segfo;
 use segfo::configure::Config::ServerConfig;
 use segfo::exception::Exception::ConfigException;
 
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
-
 fn loadConfig()->Result<ServerConfig,ConfigException>{
     let conf = ServerConfig::new();
     match conf.loadConfig(){
         Err(e)=>{
             println!("設定ファイルの読み込みに失敗したため、新しく作成します。");
             println!("古いファイルは保持されています。\n");
-            let _ = conf.storeConfig().map_err(|e|{
+            if let Err(e) = conf.storeConfig(){
                 println!("設定ファイルの生成に一部失敗しました。({})",e.description());
-            });
+            };
             println!("設定ファイルを作成しました。");
             println!(" ==>{}",e.description());
             Err(e)
