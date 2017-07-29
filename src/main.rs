@@ -28,7 +28,7 @@ fn loadConfig()->Result<ServerConfig,ConfigException>{
             println!("設定ファイルの読み込みに失敗したため、新しく作成します。");
             println!("古いファイルは保持されています。\n");
             let _ = conf.generateConfig().map_err(|e|{
-                println!("設定ファイルの生成に一部失敗しました。\n ==>{}",e.description());
+                println!("設定ファイルの生成に一部失敗しました。({})",e.description());
             });
             println!("設定ファイルを作成しました。");
             Err(e)
