@@ -15,31 +15,33 @@ use iron::response::HttpResponse;
 use hyper_native_tls::NativeTlsServer;
 mod segfo;
 use segfo::configure::Config::ServerConfig;
+use segfo::exception::Exception::ConfigException;
 
 extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-fn main(){
-    let conf = match ServerConfig::new(){
-        Ok(conf)=>{
-            match conf.loadConfig(){
-                Ok(r)=>r,
-                Err(e)=>{
-                    println!("設定ファイルの読み込みに失敗したため、新しく作成します。\n古いファイルは保持されています。\n ==>{}",e.description());
-                    match conf.generateConfig(){
-                        Ok(_)=>{},
-                        Err(e)=>{
-                            println!("設定ファイルの生成に一部失敗しました。\n ==>{}",e.description())
-                        }
-                    }
-                    println!("設定ファイルを作成しました。");
-                    return;
-                }
-            }
-        },
+fn loadConfig()->Result<ServerConfig,ConfigException>{
+    let conf = ServerConfig::new()?;
+    match conf.loadConfig(){
         Err(e)=>{
-            println!("致命的なエラー：設定ファイル構造体を初期化できませんでした。\n ==>{}",e.description());
+            println!("設定ファイルの読み込みに失敗したため、新しく作成します。");
+            println!("古いファイルは保持されています。\n");
+            let _ = conf.generateConfig().map_err(|e|{
+                println!("設定ファイルの生成に一部失敗しました。\n ==>{}",e.description());
+            });
+            println!("設定ファイルを作成しました。");
+            Err(e)
+        },
+        Ok(conf)=>Ok(conf)
+    }
+}
+
+fn main(){
+    let conf = match loadConfig(){
+        Ok(conf)=>conf,
+        Err(e)=>{
+            println!(" ==>{}",e.description());
             return;
         }
     };

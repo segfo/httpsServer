@@ -13,9 +13,10 @@ pub mod Config{
         pub filePath:String,
         pub passphrase:String,
     }
-
+    use std::result;
+    type Result<T> = result::Result<T, ConfigException>;
     impl ServerConfig{
-        pub fn new()->Result<ServerConfig, ConfigException> {
+        pub fn new()->Result<ServerConfig> {
             let conf = ServerConfig {
                 interface: "::0".to_owned(),
                 port: "443".to_owned(),
@@ -28,7 +29,7 @@ pub mod Config{
             Ok(conf)
         }
 
-        pub fn generateConfig(&self) -> Result<(), ConfigException> {
+        pub fn generateConfig(&self) -> Result<()> {
             // jsonファイルを保存
             let json = ::serde_json::to_string(&self)?;
             let mut writer = ::BufWriter::new(::File::create("serverconfig.json")?);
@@ -37,7 +38,7 @@ pub mod Config{
             Ok(())
         }
 
-        pub fn loadConfig(&self)-> Result<ServerConfig, ConfigException >{
+        pub fn loadConfig(&self)-> Result<ServerConfig>{
             let mut reader = ::BufReader::new(::File::open("serverconfig.json")?);
             let mut json = String::new();
             reader.read_to_string(&mut json)?;
