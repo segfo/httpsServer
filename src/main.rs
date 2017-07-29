@@ -22,15 +22,16 @@ extern crate serde_json;
 extern crate serde_derive;
 
 fn loadConfig()->Result<ServerConfig,ConfigException>{
-    let conf = ServerConfig::new()?;
+    let conf = ServerConfig::new();
     match conf.loadConfig(){
         Err(e)=>{
             println!("設定ファイルの読み込みに失敗したため、新しく作成します。");
             println!("古いファイルは保持されています。\n");
-            let _ = conf.generateConfig().map_err(|e|{
+            let _ = conf.storeConfig().map_err(|e|{
                 println!("設定ファイルの生成に一部失敗しました。({})",e.description());
             });
             println!("設定ファイルを作成しました。");
+            println!(" ==>{}",e.description());
             Err(e)
         },
         Ok(conf)=>Ok(conf)
@@ -40,10 +41,7 @@ fn loadConfig()->Result<ServerConfig,ConfigException>{
 fn main(){
     let conf = match loadConfig(){
         Ok(conf)=>conf,
-        Err(e)=>{
-            println!(" ==>{}",e.description());
-            return;
-        }
+        Err(_)=>return
     };
     if conf.https {
         runHttpsServer(&conf);
@@ -58,8 +56,8 @@ fn index(req: &mut Request) -> IronResult<Response> {
 }
 
 fn query(req: &mut Request) -> IronResult<Response> {
-    let ref q1 = req.extensions.get::<Router>().unwrap().find("query").unwrap_or("/");
-    let ref q2 = req.extensions.get::<Router>().unwrap().find("q1").unwrap_or("/");
+    let ref q1 = req.extensions.get::<Router>().unwrap().find("para1").unwrap_or("/");
+    let ref q2 = req.extensions.get::<Router>().unwrap().find("para2").unwrap_or("/");
     let res=format!("{}:{}",*q1,*q2);
     Ok(Response::with((status::Ok, res)))
 }
@@ -68,13 +66,11 @@ fn setupServer()->iron::Iron<router::Router>{
     let mut router = Router::new();
     // router , method , router_id
     router.get("/", index, "index");
-    router.get("/req/:query/:q1", query, "query");
+    router.get("/req/:para1/:para2", query, "query");
     Iron::new(router)
 }
 
 fn runHttpServer(conf:&ServerConfig) {
-    let mut router = Router::new();
-
     println!("httpサーバ：動作開始(非推奨)");
 
     let bindAddr=format!("{}:{}", conf.interface, conf.port);

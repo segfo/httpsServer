@@ -16,8 +16,8 @@ pub mod Config{
     use std::result;
     type Result<T> = result::Result<T, ConfigException>;
     impl ServerConfig{
-        pub fn new()->Result<ServerConfig> {
-            let conf = ServerConfig {
+        pub fn new()->ServerConfig {
+            ServerConfig {
                 interface: "::0".to_owned(),
                 port: "443".to_owned(),
                 https:true,
@@ -25,11 +25,10 @@ pub mod Config{
                     filePath:"identity.p12".to_owned(),
                     passphrase:"password".to_owned()
                 }
-            };
-            Ok(conf)
+            }
         }
 
-        pub fn generateConfig(&self) -> Result<()> {
+        pub fn storeConfig(&self) -> Result<()> {
             // jsonファイルを保存
             let json = ::serde_json::to_string(&self)?;
             let mut writer = ::BufWriter::new(::File::create("serverconfig.json")?);
